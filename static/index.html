@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Set charset and responsive viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRS Dashboard</title>
+    <!-- External stylesheet -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- Main app container -->
+    <div class="app">
+        <!-- Register Page -->
+        <div id="register-page" style="display: none;">
+            <div class="login-container">
+                <h1>Register</h1>
+                <!-- Registration form -->
+                <form id="register-form">
+                    <label for="reg_username">Username:</label>
+                    <input type="text" id="reg_username" name="username" required>
+                    <label for="reg_password">Password:</label>
+                    <input type="password" id="reg_password" name="password" required>
+                    <label for="reg_role">Role:</label>
+                    <select id="reg_role" name="role" required>
+                        <option value="public">Public</option>
+                        <option value="government">Government</option>
+                        <option value="merchant">Merchant</option>
+                    </select>
+                    <button type="submit">Register</button>
+                </form>
+                <p id="register-message"></p>
+                <p><a href="#" onclick="showPage('login')">Back to Login</a></p>
+            </div>
+        </div>
+
+        <!-- Login Page -->
+        <div id="login-page">
+            <div class="login-container">
+                <h1>Login</h1>
+                <!-- Login form -->
+                <form id="login-form">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                    <button type="submit">Login</button>
+                </form>
+                <p id="login-message"></p>
+                <p><a href="#" onclick="showPage('register')">Don't have an account? Register here</a></p>
+            </div>
+        </div>
+
+        <!-- Welcome Page -->
+        <div id="welcome-page" style="display: none;">
+            <div class="welcome-container">
+                <h1>Welcome to PRS Dashboard</h1>
+                <p>Hello, <span id="welcome-role"></span>!</p>
+                <button onclick="showPage('dashboard')">Go to Dashboard</button>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Dashboard Page -->
+        <div id="dashboard-page" style="display: none;">
+            <header>
+                <h1>PRS Dashboard</h1>
+                <p>Welcome, <span id="user-role">User</span> | <button onclick="logout()">Logout</button></p>
+            </header>
+            <div class="main">
+                <!-- Sidebar navigation -->
+                <aside class="sidebar">
+                    <nav class="nav-buttons">
+                        <button onclick="showSection('individual')" class="public government">Individuals</button>
+                        <button onclick="showSection('merchant')" class="merchant government">Merchants</button>
+                        <button onclick="showSection('critical-item')">Critical Items</button>
+                        <button onclick="showSection('merchant-stock')" class="merchant government">Stock</button>
+                        <button onclick="showSection('purchase')">Purchases</button>
+                        <button onclick="showSection('vaccination')">Vaccination Records</button>
+                        <button onclick="showSection('government-official')" class="government">Officials</button>
+                        <button onclick="showSection('access-log')" class="government">Access Logs</button>
+                    </nav>
+                </aside>
+                <main class="content">
+                    <!-- Individual Section -->
+                    <div id="individual-section" style="display: none;">
+                        <h2>Manage Individuals</h2>
+                        <form id="individual-form">
+                            <input type="hidden" id="ind_prs_id" name="prs_id">
+                            <label for="ind_national_identifier">National Identifier:</label>
+                            <input type="text" id="ind_national_identifier" name="national_identifier" required>
+                            <label for="ind_date_of_birth">Date of Birth:</label>
+                            <input type="date" id="ind_date_of_birth" name="date_of_birth" required>
+                            <button type="submit" id="individual-submit">Create Individual</button>
+                            <button type="button" id="cancel-individual-update" style="display: none;" onclick="cancelIndividualUpdate()">Cancel Update</button>
+                        </form>
+                        <p id="individual-message"></p>
+                        <h3>Individuals List</h3>
+                        <table id="individual-table">
+                            <thead>
+                                <tr>
+                                    <th>PRS ID</th>
+                                    <th>National Identifier</th>
+                                    <th>Date of Birth</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Merchant Section -->
+                    <div id="merchant-section" style="display: none;">
+                        <h2>Manage Merchants</h2>
+                        <form id="merchant-form">
+                            <input type="hidden" id="merch_id" name="merchant_id">
+                            <label for="merch_business_license">Business License:</label>
+                            <input type="text" id="merch_business_license" name="business_license" required>
+                            <label for="merch_name">Name:</label>
+                            <input type="text" id="merch_name" name="name" required>
+                            <label for="merch_address">Address:</label>
+                            <input type="text" id="merch_address" name="address" required>
+                            <button type="submit" id="merchant-submit">Create Merchant</button>
+                            <button type="button" id="cancel-merchant-update" style="display: none;" onclick="cancelMerchantUpdate()">Cancel Update</button>
+                        </form>
+                        <p id="merchant-message"></p>
+                        <h3>Merchants List</h3>
+                        <table id="merchant-table">
+                            <thead>
+                                <tr>
+                                    <th>Merchant ID</th>
+                                    <th>Name</th>
+                                    <th>Address</th>
+                                    <th>Created At</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Critical Item Section -->
+                    <div id="critical-item-section" style="display: none;">
+                        <h2>Manage Critical Items</h2>
+                        <form id="critical-item-form">
+                            <input type="hidden" id="item_id" name="item_id">
+                            <label for="item_name">Item Name:</label>
+                            <input type="text" id="item_name" name="name" required>
+                            <label for="purchase_limit">Purchase Limit:</label>
+                            <input type="number" id="purchase_limit" name="purchase_limit" required>
+                            <label for="limit_period">Limit Period:</label>
+                            <select id="limit_period" name="limit_period" required>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                            </select>
+                            <label for="allowed_day">Allowed Purchase Day (if weekly):</label>
+                            <select id="allowed_day" name="allowed_purchase_day">
+                                <option value="">None</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                                <option value="Sunday">Sunday</option>
+                            </select>
+                            <button type="submit" id="critical-item-submit">Add Critical Item</button>
+                            <button type="button" id="cancel-update" style="display: none;" onclick="cancelUpdate()">Cancel Update</button>
+                        </form>
+                        <p id="critical-item-message"></p>
+                        <h3>Critical Items List</h3>
+                        <table id="critical-item-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Purchase Limit</th>
+                                    <th>Limit Period</th>
+                                    <th>Allowed Day</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Merchant Stock Section -->
+                    <div id="merchant-stock-section" style="display: none;">
+                        <h2>Manage Merchant Stock</h2>
+                        <form id="merchant-stock-form">
+                            <input type="hidden" id="stock_id" name="stock_id">
+                            <label for="stock_merchant">Merchant ID:</label>
+                            <select id="stock_merchant" name="merchant" required>
+                                <option value="">Select Merchant ID</option>
+                            </select>
+                            <label for="stock_item">Item ID:</label>
+                            <select id="stock_item" name="item" required>
+                                <option value="">Select Item ID</option>
+                            </select>
+                            <label for="stock_level">Stock Level:</label>
+                            <input type="number" id="stock_level" name="stock_level" required>
+                            <button type="submit" id="merchant-stock-submit">Add Stock</button>
+                            <button type="button" id="cancel-merchant-stock-update" style="display: none;" onclick="cancelMerchantStockUpdate()">Cancel Update</button>
+                        </form>
+                        <p id="merchant-stock-message"></p>
+                        <h3>Stock List</h3>
+                        <table id="merchant-stock-table">
+                            <thead>
+                                <tr>
+                                    <th>Stock ID</th>
+                                    <th>Merchant ID</th>
+                                    <th>Item ID</th>
+                                    <th>Stock Level</th>
+                                    <th>Last Updated</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Purchase Section -->
+                    <div id="purchase-section" style="display: none;">
+                        <h2>Purchases</h2>
+                        <p id="purchase-message"></p>
+                        <form id="purchase-form">
+                            <input type="hidden" id="purchase_id">
+                            <label for="purchase_prs_id">PRS ID:</label>
+                            <select id="purchase_prs_id" required></select><br>
+                            <label for="purchase_merchant">Merchant ID:</label>
+                            <select id="purchase_merchant" required></select><br>
+                            <label for="purchase_item">Item ID:</label>
+                            <select id="purchase_item" required></select><br>
+                            <label for="purchase_quantity">Quantity:</label>
+                            <input type="number" id="purchase_quantity" required><br>
+                            <button type="submit" id="purchase-submit">Add Purchase</button>
+                            <button type="button" id="cancel-purchase-update" style="display: none;" onclick="cancelPurchaseUpdate()">Cancel Update</button>
+                        </form>
+                        <table id="purchase-table">
+                            <thead>
+                                <tr>
+                                    <th>Purchase ID</th>
+                                    <th>PRS ID</th>
+                                    <th>Merchant ID</th>
+                                    <th>Item ID</th>
+                                    <th>Quantity</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Vaccination Record Section -->
+                    <div id="vaccination-section" style="display: none;" class="dashboard-section">
+                        <h2>Manage Vaccination Records</h2>
+                        <form id="vaccination-form">
+                            <input type="hidden" id="vacc_record_id" name="record_id">
+                            <label for="vacc_prs_id">PRS ID:</label>
+                            <select id="vacc_prs_id" name="prs_id" required>
+                                <option value="">Select PRS ID</option>
+                            </select>
+                            <label for="vaccine_type">Vaccine Type:</label>
+                            <input type="text" id="vaccine_type" name="vaccine_type" required>
+                            <label for="manufacturer">Manufacturer:</label>
+                            <input type="text" id="manufacturer" name="manufacturer">
+                            <label for="dose_number">Dose Number:</label>
+                            <input type="number" id="dose_number" name="dose_number" required>
+                            <label for="batch_number">Batch Number:</label>
+                            <input type="text" id="batch_number" name="batch_number">
+                            <label for="vaccination_date">Vaccination Date:</label>
+                            <input type="date" id="vaccination_date" name="vaccination_date" required>
+                            <label for="administered_by">Administered By:</label>
+                            <input type="text" id="administered_by" name="administered_by">
+                            <label for="status">Status:</label>
+                            <select id="status" name="status" required>
+                                <option value="Completed">Completed</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                            <button type="submit" id="vaccination-submit">Add Vaccination Record</button>
+                            <button type="button" id="cancel-vaccination-update" style="display: none;" onclick="cancelVaccinationUpdate()">Cancel Update</button>
+                        </form>
+                        <p id="vaccination-message"></p>
+                        <h3>Vaccination Records List</h3>
+                        <table id="vaccination-table">
+                            <thead>
+                                <tr>
+                                    <th>Record ID</th>
+                                    <th>PRS ID</th>
+                                    <th>Vaccine Type</th>
+                                    <th>Dose Number</th>
+                                    <th>Vaccination Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Government Official Section -->
+                    <div id="government-official-section" style="display: none;">
+                        <h2>Government Officials</h2>
+                        <table id="government-official-table">
+                            <thead>
+                                <tr>
+                                    <th>Official ID</th>
+                                    <th>Username</th>
+                                    <th>Password Hash</th>
+                                    <th>Role</th>
+                                    <th>Created At</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <p id="government-official-message"></p>
+                    </div>
+
+                    <!-- Access Log Section -->
+                    <div id="access-log-section" style="display: none;">
+                        <h2>Access Logs</h2>
+                        <table id="access-log-table">
+                            <thead>
+                                <tr>
+                                    <th>Log ID</th>
+                                    <th>Official ID</th>
+                                    <th>Action</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                        <p id="access-log-message"></p>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript file -->
+    <script src="/static/script.js"></script>
+</body>
+</html>
