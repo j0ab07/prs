@@ -22,22 +22,20 @@ import pytz
 # Custom permission class for role-based access
 class RoleBasedPermission(permissions.BasePermission):
     def has_permission(self, request, view):
-        print(f"View basename: {view.basename}, Action: {view.action}, Endpoint: {request.path}")
         if not request.user.is_authenticated:
-            print("User not authenticated")
             return False
         try:
             official = GovernmentOfficial.objects.get(user=request.user)
             role = official.role
-            print(f"User role: {role}")
         except GovernmentOfficial.DoesNotExist:
             role = 'public'
-            print("No GovernmentOfficial found, defaulting to public")
             if hasattr(request.user, 'profile') and hasattr(request.user.profile, 'merchant_id') and request.user.profile.merchant_id:
                 role = 'merchant'
-                print(f"Merchant role detected")
-        
-        if view.basename == 'critical-items':
+
+        if view.basename == 'government-officials':
+            # Allow Government and Merchant to view their own role
+            return role in ['government', 'merchant']
+        elif view.basename == 'critical-items':
             if request.method in ['GET']:
                 return role in ['public', 'merchant', 'government']
             return role == 'government'
@@ -59,18 +57,14 @@ class RoleBasedPermission(permissions.BasePermission):
                     if view.action == 'create':
                         merchant_id = request.data.get('merchant')
                         if not merchant_id:
-                            print("No merchant_id provided in the request")
                             return False
                         try:
                             user_profile = request.user.profile
                         except User.profile.RelatedObjectDoesNotExist:
-                            print("No user profile found for this user")
                             return False
                         if not user_profile.merchant_id:
-                            print("User has no merchant_id associated with their profile")
                             return False
                         if str(merchant_id) != str(user_profile.merchant_id.merchant_id):
-                            print(f"Merchant ID mismatch: {merchant_id} does not match {user_profile.merchant_id.merchant_id}")
                             return False
                         return True
                     return True
@@ -79,42 +73,30 @@ class RoleBasedPermission(permissions.BasePermission):
         elif view.basename == 'purchases':
             if role == 'public':
                 if view.action in ['list', 'retrieve']:
-                    print("Allowing public user to list/retrieve purchases (filtered in get_queryset)")
                     return True
                 if view.action == 'create':
                     merchant_id = request.data.get('merchant')
                     if not merchant_id:
-                        print("No merchant_id provided in the request for public user")
                         return False
-                    print("Allowing public user to create purchase (merchant specified)")
                     return True
-                print(f"Action {view.action} not allowed for public user")
                 return False
             if role == 'merchant':
                 if view.action in ['list', 'retrieve', 'create', 'partial_update']:
                     if view.action == 'create':
                         merchant_id = request.data.get('merchant')
                         if not merchant_id:
-                            print("No merchant_id provided in the request")
                             return False
                         try:
                             user_profile = request.user.profile
                         except User.profile.RelatedObjectDoesNotExist:
-                            print("No user profile found for this user")
                             return False
                         if not user_profile.merchant_id:
-                            print("User has no merchant_id associated with their profile")
                             return False
                         if str(merchant_id) != str(user_profile.merchant_id.merchant_id):
-                            print(f"Merchant ID mismatch: {merchant_id} does not match {user_profile.merchant_id.merchant_id}")
                             return False
-                        print("Allowing merchant user to create purchase (own merchant_id)")
                         return True
-                    print("Allowing merchant user to list/retrieve/partial_update (filtered in get_queryset/viewset)")
                     return True
-                print(f"Action {view.action} not allowed for merchant user")
                 return False
-            print("Allowing government user full access to purchases")
             return role == 'government'
         elif view.basename == 'vaccination-records':
             if role == 'public':
@@ -123,32 +105,20 @@ class RoleBasedPermission(permissions.BasePermission):
                 if view.action in ['upload', 'upload_record']:
                     try:
                         user_profile = request.user.profile
-                        print(f"User profile found: {user_profile}")
                     except User.profile.RelatedObjectDoesNotExist:
-                        print("No user profile found for this user")
                         return False
-
                     if not user_profile.prs_id:
-                        print("User has no PRS ID associated with their profile")
                         return False
-
                     prs_id = request.data.get('prs_id')
-                    print(f"PRS ID from request: {prs_id}, User's PRS ID: {user_profile.prs_id.prs_id}")
                     if not prs_id:
-                        print("No PRS ID provided in the request")
                         return False
-
                     if str(prs_id) != str(user_profile.prs_id.prs_id):
-                        print(f"PRS ID mismatch: {prs_id} does not match {user_profile.prs_id.prs_id}")
                         return False
-
-                    print("PRS ID matches, allowing upload")
                     return True
                 return False
             return role == 'government'
-        elif view.basename in ['government-officials', 'access-logs']:
+        elif view.basename == 'access-logs':
             return role == 'government'
-        print("Default case: permission denied")
         return False
 
 # User registration endpoint
@@ -171,10 +141,25 @@ def register_user(request):
     try:
         with transaction.atomic():
             user = User.objects.create_user(username=username, password=password)
-            UserProfile.objects.create(user=user)
+            user_profile = UserProfile.objects.create(user=user)
 
             if role in ['government', 'merchant']:
+                # Ensure no duplicate GovernmentOfficial exists
+                if GovernmentOfficial.objects.filter(user=user).exists():
+                    return Response({"error": "User already has a government or merchant role"}, status=status.HTTP_400_BAD_REQUEST)
                 GovernmentOfficial.objects.create(user=user, role=role)
+                # If merchant, create a Merchant record and link to UserProfile
+                if role == 'merchant':
+                    merchant_data = {
+                        'business_license': f'BL-{username}',  # Placeholder, adjust as needed
+                        'name': username,
+                        'address': 'Default Address'  # Placeholder, adjust as needed
+                    }
+                    merchant_serializer = MerchantSerializer(data=merchant_data)
+                    merchant_serializer.is_valid(raise_exception=True)
+                    merchant = merchant_serializer.save()
+                    user_profile.merchant_id = merchant
+                    user_profile.save()
 
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
     except Exception as e:

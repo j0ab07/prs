@@ -1,0 +1,1788 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/schema/:
+    get:
+      operationId: api_schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/token/:
+    post:
+      operationId: api_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/token/refresh/:
+    post:
+      operationId: api_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/access-logs/:
+    get:
+      operationId: api_v1_access_logs_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessLog'
+          description: ''
+    post:
+      operationId: api_v1_access_logs_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessLog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccessLog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccessLog'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessLog'
+          description: ''
+  /api/v1/access-logs/{log_id}/:
+    get:
+      operationId: api_v1_access_logs_retrieve
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this access log.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessLog'
+          description: ''
+    put:
+      operationId: api_v1_access_logs_update
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this access log.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccessLog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccessLog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccessLog'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessLog'
+          description: ''
+    patch:
+      operationId: api_v1_access_logs_partial_update
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this access log.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccessLog'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAccessLog'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAccessLog'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessLog'
+          description: ''
+    delete:
+      operationId: api_v1_access_logs_destroy
+      parameters:
+      - in: path
+        name: log_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this access log.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/critical-items/:
+    get:
+      operationId: api_v1_critical_items_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CriticalItem'
+          description: ''
+    post:
+      operationId: api_v1_critical_items_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriticalItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CriticalItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CriticalItem'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CriticalItem'
+          description: ''
+  /api/v1/critical-items/{item_id}/:
+    get:
+      operationId: api_v1_critical_items_retrieve
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this critical item.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CriticalItem'
+          description: ''
+    put:
+      operationId: api_v1_critical_items_update
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this critical item.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CriticalItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CriticalItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CriticalItem'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CriticalItem'
+          description: ''
+    patch:
+      operationId: api_v1_critical_items_partial_update
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this critical item.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCriticalItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCriticalItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCriticalItem'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CriticalItem'
+          description: ''
+    delete:
+      operationId: api_v1_critical_items_destroy
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this critical item.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/government-officials/:
+    get:
+      operationId: api_v1_government_officials_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GovernmentOfficial'
+          description: ''
+    post:
+      operationId: api_v1_government_officials_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GovernmentOfficial'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GovernmentOfficial'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GovernmentOfficial'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernmentOfficial'
+          description: ''
+  /api/v1/government-officials/{id}/:
+    get:
+      operationId: api_v1_government_officials_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernmentOfficial'
+          description: ''
+    put:
+      operationId: api_v1_government_officials_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GovernmentOfficial'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GovernmentOfficial'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GovernmentOfficial'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernmentOfficial'
+          description: ''
+    patch:
+      operationId: api_v1_government_officials_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGovernmentOfficial'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedGovernmentOfficial'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedGovernmentOfficial'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernmentOfficial'
+          description: ''
+    delete:
+      operationId: api_v1_government_officials_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/individuals/:
+    get:
+      operationId: api_v1_individuals_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Individual'
+          description: ''
+    post:
+      operationId: api_v1_individuals_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Individual'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Individual'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Individual'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Individual'
+          description: ''
+  /api/v1/individuals/{prs_id}/:
+    get:
+      operationId: api_v1_individuals_retrieve
+      parameters:
+      - in: path
+        name: prs_id
+        schema:
+          type: string
+        description: A unique value identifying this individual.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Individual'
+          description: ''
+    put:
+      operationId: api_v1_individuals_update
+      parameters:
+      - in: path
+        name: prs_id
+        schema:
+          type: string
+        description: A unique value identifying this individual.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Individual'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Individual'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Individual'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Individual'
+          description: ''
+    patch:
+      operationId: api_v1_individuals_partial_update
+      parameters:
+      - in: path
+        name: prs_id
+        schema:
+          type: string
+        description: A unique value identifying this individual.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIndividual'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIndividual'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIndividual'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Individual'
+          description: ''
+    delete:
+      operationId: api_v1_individuals_destroy
+      parameters:
+      - in: path
+        name: prs_id
+        schema:
+          type: string
+        description: A unique value identifying this individual.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/merchant-stock/:
+    get:
+      operationId: api_v1_merchant_stock_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MerchantStock'
+          description: ''
+    post:
+      operationId: api_v1_merchant_stock_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantStock'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantStock'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantStock'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantStock'
+          description: ''
+  /api/v1/merchant-stock/{stock_id}/:
+    get:
+      operationId: api_v1_merchant_stock_retrieve
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant stock.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantStock'
+          description: ''
+    put:
+      operationId: api_v1_merchant_stock_update
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant stock.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MerchantStock'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MerchantStock'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MerchantStock'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantStock'
+          description: ''
+    patch:
+      operationId: api_v1_merchant_stock_partial_update
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant stock.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchantStock'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchantStock'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchantStock'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MerchantStock'
+          description: ''
+    delete:
+      operationId: api_v1_merchant_stock_destroy
+      parameters:
+      - in: path
+        name: stock_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant stock.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/merchants/:
+    get:
+      operationId: api_v1_merchants_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Merchant'
+          description: ''
+    post:
+      operationId: api_v1_merchants_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Merchant'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Merchant'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Merchant'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+          description: ''
+  /api/v1/merchants/{merchant_id}/:
+    get:
+      operationId: api_v1_merchants_retrieve
+      parameters:
+      - in: path
+        name: merchant_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+          description: ''
+    put:
+      operationId: api_v1_merchants_update
+      parameters:
+      - in: path
+        name: merchant_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Merchant'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Merchant'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Merchant'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+          description: ''
+    patch:
+      operationId: api_v1_merchants_partial_update
+      parameters:
+      - in: path
+        name: merchant_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchant'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchant'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMerchant'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+          description: ''
+    delete:
+      operationId: api_v1_merchants_destroy
+      parameters:
+      - in: path
+        name: merchant_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this merchant.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/purchases/:
+    get:
+      operationId: api_v1_purchases_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Purchase'
+          description: ''
+    post:
+      operationId: api_v1_purchases_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+  /api/v1/purchases/{purchase_id}/:
+    get:
+      operationId: api_v1_purchases_retrieve
+      parameters:
+      - in: path
+        name: purchase_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this purchase.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+    put:
+      operationId: api_v1_purchases_update
+      parameters:
+      - in: path
+        name: purchase_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this purchase.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Purchase'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+    patch:
+      operationId: api_v1_purchases_partial_update
+      parameters:
+      - in: path
+        name: purchase_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this purchase.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchase'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchase'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchase'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Purchase'
+          description: ''
+    delete:
+      operationId: api_v1_purchases_destroy
+      parameters:
+      - in: path
+        name: purchase_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this purchase.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/register/:
+    post:
+      operationId: api_v1_register_create
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/user-profile/:
+    get:
+      operationId: api_v1_user_profile_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/vaccination-records/:
+    get:
+      operationId: api_v1_vaccination_records_list
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VaccinationRecord'
+          description: ''
+    post:
+      operationId: api_v1_vaccination_records_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaccinationRecord'
+          description: ''
+  /api/v1/vaccination-records/{record_id}/:
+    get:
+      operationId: api_v1_vaccination_records_retrieve
+      parameters:
+      - in: path
+        name: record_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vaccination record.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaccinationRecord'
+          description: ''
+    put:
+      operationId: api_v1_vaccination_records_update
+      parameters:
+      - in: path
+        name: record_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vaccination record.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaccinationRecord'
+          description: ''
+    patch:
+      operationId: api_v1_vaccination_records_partial_update
+      parameters:
+      - in: path
+        name: record_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vaccination record.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVaccinationRecord'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVaccinationRecord'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVaccinationRecord'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaccinationRecord'
+          description: ''
+    delete:
+      operationId: api_v1_vaccination_records_destroy
+      parameters:
+      - in: path
+        name: record_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this vaccination record.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/vaccination-records/upload/:
+    post:
+      operationId: api_v1_vaccination_records_upload_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VaccinationRecord'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VaccinationRecord'
+          description: ''
+components:
+  schemas:
+    AccessLog:
+      type: object
+      properties:
+        log_id:
+          type: integer
+          readOnly: true
+        official:
+          type: integer
+        action:
+          type: string
+          maxLength: 100
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - action
+      - log_id
+      - official
+      - timestamp
+    CriticalItem:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        purchase_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        limit_period:
+          type: string
+          maxLength: 20
+        allowed_purchase_day:
+          type: string
+          nullable: true
+          maxLength: 20
+      required:
+      - item_id
+      - limit_period
+      - name
+      - purchase_limit
+    GovernmentOfficial:
+      type: object
+      properties:
+        official_id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        password_hash:
+          type: string
+          readOnly: true
+        role:
+          type: string
+          maxLength: 50
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - official_id
+      - password_hash
+      - role
+      - username
+    Individual:
+      type: object
+      properties:
+        prs_id:
+          type: string
+          readOnly: true
+        national_identifier:
+          type: string
+          maxLength: 255
+        date_of_birth:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - date_of_birth
+      - national_identifier
+      - prs_id
+    Merchant:
+      type: object
+      properties:
+        merchant_id:
+          type: integer
+          readOnly: true
+        business_license:
+          type: string
+          maxLength: 255
+        name:
+          type: string
+          maxLength: 100
+        address:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - address
+      - business_license
+      - created_at
+      - merchant_id
+      - name
+    MerchantStock:
+      type: object
+      properties:
+        stock_id:
+          type: integer
+          readOnly: true
+        merchant:
+          type: integer
+        item:
+          type: integer
+        stock_level:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        last_updated:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - item
+      - last_updated
+      - merchant
+      - stock_id
+      - stock_level
+    PatchedAccessLog:
+      type: object
+      properties:
+        log_id:
+          type: integer
+          readOnly: true
+        official:
+          type: integer
+        action:
+          type: string
+          maxLength: 100
+        timestamp:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCriticalItem:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        purchase_limit:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        limit_period:
+          type: string
+          maxLength: 20
+        allowed_purchase_day:
+          type: string
+          nullable: true
+          maxLength: 20
+    PatchedGovernmentOfficial:
+      type: object
+      properties:
+        official_id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+        password_hash:
+          type: string
+          readOnly: true
+        role:
+          type: string
+          maxLength: 50
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedIndividual:
+      type: object
+      properties:
+        prs_id:
+          type: string
+          readOnly: true
+        national_identifier:
+          type: string
+          maxLength: 255
+        date_of_birth:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedMerchant:
+      type: object
+      properties:
+        merchant_id:
+          type: integer
+          readOnly: true
+        business_license:
+          type: string
+          maxLength: 255
+        name:
+          type: string
+          maxLength: 100
+        address:
+          type: string
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedMerchantStock:
+      type: object
+      properties:
+        stock_id:
+          type: integer
+          readOnly: true
+        merchant:
+          type: integer
+        item:
+          type: integer
+        stock_level:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        last_updated:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedPurchase:
+      type: object
+      properties:
+        purchase_id:
+          type: integer
+          readOnly: true
+        prs_id:
+          type: string
+        merchant:
+          type: integer
+        item:
+          type: integer
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        purchase_date:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedVaccinationRecord:
+      type: object
+      properties:
+        record_id:
+          type: integer
+          readOnly: true
+        prs_id:
+          type: string
+        vaccine_type:
+          type: string
+          maxLength: 100
+        manufacturer:
+          type: string
+          nullable: true
+          maxLength: 100
+        dose_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        batch_number:
+          type: string
+          nullable: true
+          maxLength: 50
+        vaccination_date:
+          type: string
+          format: date
+        administered_by:
+          type: string
+          nullable: true
+          maxLength: 100
+        status:
+          type: string
+          maxLength: 20
+    Purchase:
+      type: object
+      properties:
+        purchase_id:
+          type: integer
+          readOnly: true
+        prs_id:
+          type: string
+        merchant:
+          type: integer
+        item:
+          type: integer
+        quantity:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        purchase_date:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - item
+      - merchant
+      - prs_id
+      - purchase_date
+      - purchase_id
+      - quantity
+    TokenObtainPair:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - password
+      - refresh
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          writeOnly: true
+      required:
+      - access
+      - refresh
+    VaccinationRecord:
+      type: object
+      properties:
+        record_id:
+          type: integer
+          readOnly: true
+        prs_id:
+          type: string
+        vaccine_type:
+          type: string
+          maxLength: 100
+        manufacturer:
+          type: string
+          nullable: true
+          maxLength: 100
+        dose_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        batch_number:
+          type: string
+          nullable: true
+          maxLength: 50
+        vaccination_date:
+          type: string
+          format: date
+        administered_by:
+          type: string
+          nullable: true
+          maxLength: 100
+        status:
+          type: string
+          maxLength: 20
+      required:
+      - dose_number
+      - prs_id
+      - record_id
+      - vaccination_date
+      - vaccine_type
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

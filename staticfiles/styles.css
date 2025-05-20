@@ -1,0 +1,343 @@
+/* Global body styles */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #e9ecef;
+    height: 100vh;
+    overflow: auto; /* Changed to auto for better content visibility */
+}
+
+/* Main app container */
+.app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Register and Login Pages */
+#register-page, #login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #007bff, #00c4b4);
+    animation: fadeIn 0.5s;
+}
+
+/* Login/register form container */
+.login-container {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 400px;
+    text-align: left;
+}
+
+/* Login/register heading */
+.login-container h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Links in login/register */
+.login-container a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+/* Hover effect for links */
+.login-container a:hover {
+    text-decoration: underline;
+}
+
+/* Welcome Page */
+#welcome-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    animation: fadeIn 0.5s;
+}
+
+/* Welcome content container */
+.welcome-container {
+    background: white;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+}
+
+/* Welcome heading */
+.welcome-container h1 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Welcome paragraphs */
+.welcome-container p {
+    margin: 10px 0;
+    color: #555;
+}
+
+/* Welcome list styling */
+.welcome-container ul {
+    text-align: left;
+    margin: 20px 0;
+    padding-left: 20px;
+}
+
+/* Welcome buttons */
+.welcome-container button {
+    padding: 12px 20px;
+    margin: 10px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Hover effect for welcome buttons */
+.welcome-container button:hover {
+    background: #218838;
+}
+
+/* Logout button in welcome page */
+.welcome-container button:nth-child(2) {
+    background: #dc3545;
+}
+
+/* Hover effect for logout button */
+.welcome-container button:nth-child(2):hover {
+    background: #c82333;
+}
+
+/* Dashboard Page */
+#dashboard-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Dashboard header */
+header {
+    background: #343a40;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Header title */
+header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+/* Header user info */
+header p {
+    margin: 0;
+    font-size: 16px;
+}
+
+/* Header logout button */
+header button {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Hover effect for header logout */
+header button:hover {
+    background: #c82333;
+}
+
+/* Main dashboard content area */
+.main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Sidebar navigation */
+.sidebar {
+    width: 220px;
+    background: #f8f9fa;
+    padding: 20px;
+    border-right: 1px solid #ddd;
+    overflow-y: auto;
+}
+
+/* Sidebar button container */
+.nav-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Standardized spacing */
+}
+
+/* Sidebar navigation buttons */
+.nav-buttons button {
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+/* Hover effect for nav buttons */
+.nav-buttons button:hover {
+    background: #0056b3;
+}
+
+/* Focus state for nav buttons */
+.nav-buttons button:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+}
+
+/* Main content area */
+.content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    background: white;
+}
+
+/* Headings */
+h2, h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+/* Forms */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+/* Form labels */
+label {
+    font-weight: bold;
+    color: #555;
+}
+
+/* Form inputs and selects */
+input, textarea, select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Focus state for inputs */
+input:focus, textarea:focus, select:focus {
+    outline: 2px solid #007bff;
+    border-color: #007bff;
+}
+
+/* Textarea styling */
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Submit buttons */
+button[type="submit"] {
+    padding: 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+/* Hover effect for submit buttons */
+button[type="submit"]:hover {
+    background: #218838;
+}
+
+/* Focus state for submit buttons */
+button[type="submit"]:focus {
+    outline: 2px solid #218838;
+    outline-offset: 2px;
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: white;
+}
+
+/* Table cells */
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+/* Table headers */
+th {
+    background: #343a40;
+    color: white;
+    font-weight: bold;
+}
+
+/* Alternating row colors */
+tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+/* Hover effect for table rows */
+tr:hover {
+    background: #f1f1f1;
+}
+
+/* Paragraphs */
+p {
+    margin: 10px 0;
+    color: #333;
+    text-align: center;
+}
+
+/* Action buttons spacing */
+.action-buttons {
+    margin-right: 5px;
+}
+
+/* Error messages */
+#login-message, #register-message, #individual-message, #merchant-message,
+#critical-item-message, #merchant-stock-message, #purchase-message,
+#vaccination-message, #government-official-message, #access-log-message {
+    color: red;
+    font-weight: bold;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

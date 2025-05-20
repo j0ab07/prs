@@ -1,6 +1,7 @@
+/* Global variables for managing authentication and state */
 let accessToken = ''; // Stores user authentication token
 let userRole = 'User'; // Tracks user's role (Public, Government, Merchant)
-let userOfficialId = null; // Stores government official ID
+let userOfficialId = null; //.Concurrent Stores government official ID
 let editingItemId = null; // Tracks ID of critical item being edited
 let editingVaccinationId = null; // Tracks ID of vaccination record being edited
 let editingIndividualId = null; // Tracks ID of individual record being edited
@@ -8,41 +9,78 @@ let editingMerchantId = null; // Tracks ID of merchant record being edited
 let editingMerchantStockId = null; // Tracks ID of merchant stock being edited
 let editingPurchaseId = null; // Tracks ID of purchase being edited
 
-// Show specific page (register, login, welcome, dashboard)
+/* Displays the specified page while hiding others */
 function showPage(page) {
     const pages = ['register', 'login', 'welcome', 'dashboard'];
     pages.forEach(p => {
-        document.getElementById(`${p}-page`).style.display = p === page ? 'flex' : 'none';
+        const element = document.getElementById(`${p}-page`);
+        if (element) {
+            element.style.display = p === page ? 'flex' : 'none';
+        } else {
+            console.warn(`Page element '${p}-page' not found`);
+        }
     });
-    if (page === 'dashboard') showSection('individual');
-    if (page === 'welcome') {
-        document.getElementById('welcome-role').textContent = `Welcome, ${username}`; // Display "Welcome, {username}"
+
+    /* Set default dashboard section based on user role */
+    if (page === 'dashboard') {
+        if (userRole === 'Merchant') {
+            showSection('merchant');
+        } else if (userRole === 'Public') {
+            showSection('individual');
+        } else if (userRole === 'Government') {
+            showSection('individual');
+        }
     }
-    document.getElementById('login-message').textContent = '';
-    document.getElementById('register-message').textContent = '';
+
+    /* Update welcome page with user role */
+    if (page === 'welcome') {
+        const welcomeRole = document.getElementById('welcome-role');
+        if (welcomeRole) {
+            welcomeRole.textContent = `Welcome, ${userRole}`;
+        } else {
+            console.warn("Element 'welcome-role' not found");
+        }
+    }
+
+    /* Clear login and register messages */
+    const loginMessage = document.getElementById('login-message');
+    const registerMessage = document.getElementById('register-message');
+    if (loginMessage) {
+        loginMessage.textContent = '';
+    } else {
+        console.warn("Element 'login-message' not found");
+    }
+    if (registerMessage) {
+        registerMessage.textContent = '';
+    } else {
+        console.warn("Element 'register-message' not found");
+    }
 }
 
-// Toggle visibility of sidebar navigation buttons based on user role
+/* Toggles visibility of sidebar navigation buttons based on user role */
 function toggleSidebarButtons() {
     const buttons = document.querySelectorAll('.nav-buttons button');
     buttons.forEach(button => {
         if (userRole === 'Public' || userRole === 'Government' || userRole === 'Merchant') {
-            // All users (Public, Government, Merchant) see all buttons
             button.style.display = 'block';
         } else {
-            // Default: hide all buttons for unknown roles
             button.style.display = 'none';
         }
     });
 }
 
-// Toggle Update/Delete buttons based on user role for various sections
+/* Toggles visibility of Update/Delete buttons for individual records */
 function toggleIndividualActions() {
     const rows = document.querySelectorAll('#individual-table tbody tr');
     rows.forEach(row => {
         const isOwnRecord = row.getAttribute('data-is-own-record') === 'true';
         const updateButton = row.querySelector('.update-button');
         const deleteButton = row.querySelector('.delete-button');
+
+        if (!updateButton || !deleteButton) {
+            console.warn('Update or Delete button missing in row:', row);
+            return;
+        }
 
         if (userRole === 'Government') {
             updateButton.style.display = 'inline-block';
@@ -57,26 +95,7 @@ function toggleIndividualActions() {
     });
 }
 
-function toggleIndividualFormAccess() {
-    const form = document.getElementById('individual-form');
-    const inputs = form.querySelectorAll('input, select, button');
-    
-    if (userRole === 'Merchant') {
-        inputs.forEach(input => input.disabled = true);
-        document.getElementById('individual-message').textContent = 'Error: Merchants cannot create or update individual records.';
-    } else {
-        inputs.forEach(input => input.disabled = false);
-        if (document.getElementById('individual-message').textContent === 'Error: Merchants cannot create or update individual records.') {
-            document.getElementById('individual-message').textContent = '';
-        }
-    }
-
-    const cancelButton = document.getElementById('cancel-individual-update');
-    if (cancelButton.style.display === 'none') {
-        cancelButton.disabled = false;
-    }
-}
-
+/* Toggles visibility of Update/Delete buttons for merchant records */
 function toggleMerchantActions() {
     const rows = document.querySelectorAll('#merchant-table tbody tr');
     rows.forEach(row => {
@@ -97,19 +116,7 @@ function toggleMerchantActions() {
     });
 }
 
-function toggleMerchantFormAccess() {
-    const form = document.getElementById('merchant-form');
-    const inputs = form.querySelectorAll('input, select, button');
-    if (userRole === 'Public') {
-        inputs.forEach(input => input.disabled = true);
-        if (!document.getElementById('merchant-message').textContent) {
-            document.getElementById('merchant-message').textContent = 'Read-only access: You can view merchants but cannot modify them.';
-        }
-    } else {
-        inputs.forEach(input => input.disabled = false);
-    }
-}
-
+/* Toggles visibility of action buttons for critical items */
 function toggleCriticalItemActions() {
     const actionButtons = document.querySelectorAll('#critical-item-table .action-buttons');
     actionButtons.forEach(button => {
@@ -117,12 +124,35 @@ function toggleCriticalItemActions() {
     });
 }
 
+/* Toggles visibility of Update/Delete buttons for merchant stock */
 function toggleMerchantStockActions() {
     const rows = document.querySelectorAll('#merchant-stock-table tbody tr');
+    const message = document.getElementById('merchant-stock-message');
+    if (!message) {
+        console.error('Merchant stock message element not found');
+        return;
+    }
     rows.forEach(row => {
-        const merchantId = parseInt(row.cells[1].textContent); // Merchant ID from the table
+        if (row.cells.length < 2) {
+            console.warn('Table row has insufficient cells:', row);
+            message.textContent = 'Error: Invalid table data';
+            return;
+        }
+        const merchantIdText = row.cells[1].textContent;
+        const merchantId = parseInt(merchantIdText);
+        if (isNaN(merchantId)) {
+            console.warn('Invalid merchant ID in row:', merchantIdText);
+            message.textContent = 'Error: Invalid merchant ID in table';
+            return;
+        }
         const updateButton = row.querySelector('.update-button');
         const deleteButton = row.querySelector('.delete-button');
+
+        if (!updateButton || !deleteButton) {
+            console.warn('Update or Delete button missing in row:', row);
+            message.textContent = 'Error: Table buttons missing';
+            return;
+        }
 
         if (userRole === 'Government') {
             updateButton.style.display = 'inline-block';
@@ -138,12 +168,13 @@ function toggleMerchantStockActions() {
             .then(userProfile => {
                 const isOwnRecord = userProfile.merchant_id && merchantId === userProfile.merchant_id;
                 updateButton.style.display = isOwnRecord ? 'inline-block' : 'none';
-                deleteButton.style.display = 'none'; // Merchants cannot delete
+                deleteButton.style.display = 'none'; 
             })
             .catch(error => {
                 console.error('Error fetching user profile:', error);
                 updateButton.style.display = 'none';
                 deleteButton.style.display = 'none';
+                message.textContent = 'Error: Failed to verify user profile';
             });
         } else {
             updateButton.style.display = 'none';
@@ -152,31 +183,15 @@ function toggleMerchantStockActions() {
     });
 }
 
-function toggleMerchantStockFormAccess() {
-    const form = document.getElementById('merchant-stock-form');
-    const inputs = form.querySelectorAll('input, select, button');
-    if (userRole === 'Public') {
-        inputs.forEach(input => input.disabled = true);
-        if (!document.getElementById('merchant-stock-message').textContent) {
-            document.getElementById('merchant-stock-message').textContent = 'Read-only access: You can view merchant stock but cannot modify it.';
-        }
-    } else {
-        inputs.forEach(input => input.disabled = false);
-        if (document.getElementById('merchant-stock-message').textContent === 'Read-only access: You can view merchant stock but cannot modify it.') {
-            document.getElementById('merchant-stock-message').textContent = '';
-        }
-    }
-}
-
+/* Toggles visibility of Update/Delete buttons for purchases */
 function togglePurchaseActions() {
     const rows = document.querySelectorAll('#purchase-table tbody tr');
     rows.forEach(row => {
-        // Ensure the row has enough cells before accessing cells[2]
         if (row.cells.length < 3) {
             console.error('Table row does not have enough cells:', row);
             return;
         }
-        const merchantId = parseInt(row.cells[2].textContent); // Merchant ID from the table
+        const merchantId = parseInt(row.cells[2].textContent);
         const updateButton = row.querySelector('.update-button');
         const deleteButton = row.querySelector('.delete-button');
 
@@ -213,6 +228,7 @@ function togglePurchaseActions() {
     });
 }
 
+/* Toggles visibility of action buttons for vaccination records */
 function toggleVaccinationActions() {
     const actionButtons = document.querySelectorAll('#vaccination-table .action-buttons');
     actionButtons.forEach(button => {
@@ -220,75 +236,54 @@ function toggleVaccinationActions() {
     });
 }
 
-function toggleVaccinationFormAccess() {
-    const form = document.getElementById('vaccination-form');
-    const inputs = form.querySelectorAll('input, select, button');
-    if (userRole === 'Merchant') {
-        inputs.forEach(input => input.disabled = true);
-        document.getElementById('vaccination-message').textContent = 'Error: Merchants cannot create or update vaccination records.';
-    } else {
-        inputs.forEach(input => input.disabled = false);
-        if (document.getElementById('vaccination-message').textContent === 'Error: Merchants cannot create or update vaccination records.') {
-            document.getElementById('vaccination-message').textContent = '';
-        }
-    }
-}
-
-// Show specific section (individual, merchant, etc.)
+/* Displays the specified section while hiding others */
 function showSection(section) {
     const sections = [
         'individual', 'merchant', 'critical-item', 'merchant-stock',
         'purchase', 'vaccination', 'government-official', 'access-log'
     ];
     sections.forEach(s => {
-        document.getElementById(`${s}-section`).style.display = s === section ? 'block' : 'none';
-        document.getElementById(`${s}-message`).textContent = '';
+        const sectionElement = document.getElementById(`${s}-section`);
+        const messageElement = document.getElementById(`${s}-message`);
+        if (sectionElement) {
+            sectionElement.style.display = s === section ? 'block' : 'none';
+        } else {
+            console.warn(`Section element '${s}-section' not found`);
+        }
+        if (messageElement) {
+            messageElement.textContent = '';
+        } else {
+            console.warn(`Message element '${s}-message' not found`);
+        }
     });
+
+    /* Load data and configure UI for selected section */
     if (section === 'individual') {
         if (userRole === 'Merchant') {
-            document.getElementById('individual-message').textContent = 'You do not have permission to perform this action.';
+            document.getElementById('individual-message').textContent = 'Error: Merchants do not have access to individual records.';
             document.querySelector('#individual-table tbody').innerHTML = '<tr><td colspan="5">Access denied</td></tr>';
         } else {
             loadIndividuals();
             cancelIndividualUpdate();
             toggleIndividualActions();
-            toggleIndividualFormAccess();
         }
-    }
-    if (section === 'merchant') {
-        if (userRole === 'Public') {
-            document.getElementById('merchant-message').textContent = 'Read-only access: You can view merchants but cannot modify them.';
-        }
+    } else if (section === 'merchant') {
         loadMerchants();
         cancelMerchantUpdate();
         toggleMerchantActions();
-        toggleMerchantFormAccess();
-    }
-    if (section === 'critical-item') {
-        if (userRole === 'Public' || userRole === 'Merchant') {
-            document.getElementById('critical-item-message').textContent = 'Read-only access: You can view critical item restrictions but cannot modify them.';
-        }
+    } else if (section === 'critical-item') {
         loadCriticalItems();
         cancelUpdate();
         toggleCriticalItemActions();
-    }
-    if (section === 'merchant-stock') {
-        if (userRole === 'Public') {
-            document.getElementById('merchant-stock-message').textContent = 'Read-only access: You can view merchant stock but cannot modify it.';
-        }
+    } else if (section === 'merchant-stock') {
         loadStockMerchants();
         loadStockItems();
         loadMerchantStock();
         cancelMerchantStockUpdate();
         toggleMerchantStockActions();
-        toggleMerchantStockFormAccess();
-    }
-    if (section === 'purchase') {
+    } else if (section === 'purchase') {
         const purchaseSection = document.getElementById('purchase-section');
         if (purchaseSection) {
-            if (userRole === 'Public') {
-                document.getElementById('purchase-message').textContent = 'Read-only access: You can initiate purchases but cannot modify existing ones.';
-            }
             loadPurchasePRSIDs();
             loadPurchaseMerchants();
             loadPurchaseItems();
@@ -298,33 +293,29 @@ function showSection(section) {
         } else {
             console.error('Purchase section not found in the DOM');
         }
-    }
-    if (section === 'government-official') {
+    } else if (section === 'government-official') {
         if (userRole !== 'Government') {
             document.getElementById('government-official-message').textContent = 'Error: Only government users can view government officials.';
             document.querySelector('#government-official-table tbody').innerHTML = '<tr><td colspan="5">Access denied</td></tr>';
         } else {
             loadGovernmentOfficials();
         }
-    }
-    if (section === 'access-log') {
+    } else if (section === 'access-log') {
         if (userRole !== 'Government') {
             document.getElementById('access-log-message').textContent = 'Error: Only government users can view access logs';
             document.querySelector('#access-log-table tbody').innerHTML = '<tr><td colspan="4">Access denied</td></tr>';
         } else {
             loadAccessLogs();
         }
-    }
-    if (section === 'vaccination') {
+    } else if (section === 'vaccination') {
         loadVaccinationPRSIDs();
         loadVaccinationRecords();
         cancelVaccinationUpdate();
         toggleVaccinationActions();
-        toggleVaccinationFormAccess();
     }
 }
 
-// Logout
+/* Resets authentication and state, returns to login page */
 function logout() {
     accessToken = '';
     userRole = 'User';
@@ -336,7 +327,7 @@ function logout() {
     });
 }
 
-// Fetch Official ID for Government User
+/* Fetches government official ID for the logged-in user */
 async function fetchOfficialId(username) {
     try {
         const response = await fetch('http://localhost:8000/api/v1/government-officials/', {
@@ -358,7 +349,7 @@ async function fetchOfficialId(username) {
     }
 }
 
-// Load Individuals
+/* Loads and displays individual records */
 async function loadIndividuals() {
     const tableBody = document.querySelector('#individual-table tbody');
     const message = document.getElementById('individual-message');
@@ -368,7 +359,6 @@ async function loadIndividuals() {
         tableBody.innerHTML = '<tr><td colspan="5">Access denied</td></tr>';
         return;
     }
-
     try {
         const response = await fetch('http://localhost:8000/api/v1/individuals/', {
             headers: { 
@@ -431,6 +421,7 @@ async function loadIndividuals() {
     }
 }
 
+/* Populates individual form for editing */
 function editIndividualRecord(prsId, nationalIdentifier, dateOfBirth) {
     if (userRole === 'Public') {
         fetch('http://localhost:8000/api/v1/user-profile/', {
@@ -467,6 +458,7 @@ function editIndividualRecord(prsId, nationalIdentifier, dateOfBirth) {
     }
 }
 
+/* Resets individual form and clears editing state */
 function cancelIndividualUpdate() {
     editingIndividualId = null;
     document.getElementById('individual-form').reset();
@@ -474,9 +466,9 @@ function cancelIndividualUpdate() {
     document.getElementById('individual-submit').textContent = 'Create Individual';
     document.getElementById('cancel-individual-update').style.display = 'none';
     document.getElementById('individual-message').textContent = '';
-    toggleIndividualFormAccess();
 }
 
+/* Deletes an individual record */
 async function deleteIndividual(prsId) {
     if (userRole !== 'Government') {
         document.getElementById('individual-message').textContent = 'Error: Only government users can delete individuals';
@@ -505,7 +497,7 @@ async function deleteIndividual(prsId) {
     }
 }
 
-// Load Merchants
+/* Loads and displays merchant records */
 async function loadMerchants() {
     const tableBody = document.querySelector('#merchant-table tbody');
     const message = document.getElementById('merchant-message');
@@ -577,6 +569,7 @@ async function loadMerchants() {
     }
 }
 
+/* Populates merchant form for editing */
 function editMerchantRecord(merchantId, businessLicense, name, address) {
     if (userRole === 'Merchant') {
         fetch('http://localhost:8000/api/v1/user-profile/', {
@@ -615,6 +608,7 @@ function editMerchantRecord(merchantId, businessLicense, name, address) {
     }
 }
 
+/* Resets merchant form and clears editing state */
 function cancelMerchantUpdate() {
     editingMerchantId = null;
     document.getElementById('merchant-form').reset();
@@ -624,6 +618,7 @@ function cancelMerchantUpdate() {
     document.getElementById('merchant-message').textContent = '';
 }
 
+/* Deletes a merchant record */
 async function deleteMerchant(merchantId) {
     if (userRole !== 'Government') {
         document.getElementById('merchant-message').textContent = 'Error: Only government users can delete merchants';
@@ -652,7 +647,7 @@ async function deleteMerchant(merchantId) {
     }
 }
 
-// Load Critical Items
+/* Loads and displays critical items */
 async function loadCriticalItems() {
     const tableBody = document.querySelector('#critical-item-table tbody');
     const message = document.getElementById('critical-item-message');
@@ -700,6 +695,7 @@ async function loadCriticalItems() {
     }
 }
 
+/* Populates critical item form for editing */
 function editCriticalItem(itemId, name, purchaseLimit, limitPeriod, allowedDay) {
     if (userRole !== 'Government') {
         document.getElementById('critical-item-message').textContent = 'Error: Only government users can update items';
@@ -715,6 +711,7 @@ function editCriticalItem(itemId, name, purchaseLimit, limitPeriod, allowedDay) 
     document.getElementById('cancel-update').style.display = 'inline-block';
 }
 
+/* Resets critical item form and clears editing state */
 function cancelUpdate() {
     editingItemId = null;
     document.getElementById('critical-item-form').reset();
@@ -724,6 +721,7 @@ function cancelUpdate() {
     document.getElementById('critical-item-message').textContent = '';
 }
 
+/* Deletes a critical item */
 async function deleteCriticalItem(itemId) {
     if (userRole !== 'Government') {
         document.getElementById('critical-item-message').textContent = 'Error: Only government users can delete items';
@@ -739,23 +737,32 @@ async function deleteCriticalItem(itemId) {
             }
         });
         
-        if (!response.ok) {
-            throw new Error('Failed to delete item');
+        if (response.ok) {
+            document.getElementById('critical-item-message').textContent = 'Item deleted successfully!';
+            document.getElementById('critical-item-message').style.color = 'green';
+            loadCriticalItems();
+            if (editingItemId === itemId) cancelUpdate();
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Failed to delete item');
         }
-        
-        document.getElementById('critical-item-message').textContent = 'Item deleted successfully!';
-        document.getElementById('critical-item-message').style.color = 'green';
-        loadCriticalItems();
-        if (editingItemId === itemId) cancelUpdate();
     } catch (error) {
         document.getElementById('critical-item-message').textContent = 'Error: ' + error.message;
     }
 }
 
+/* Loads merchants for stock selection dropdown */
+/* Loads merchants for stock selection dropdown */
 async function loadStockMerchants() {
     const merchantSelect = document.getElementById('stock_merchant');
     const message = document.getElementById('merchant-stock-message');
+    if (!merchantSelect || !message) {
+        console.error('Stock merchant select or message element not found in DOM');
+        return;
+    }
+
     try {
+        // Fetch all merchants
         const response = await fetch('http://localhost:8000/api/v1/merchants/', {
             headers: { 
                 'Authorization': `Bearer ${accessToken}`,
@@ -766,7 +773,11 @@ async function loadStockMerchants() {
             const errorData = await response.json();
             throw new Error(errorData.detail || 'Failed to fetch merchants');
         }
+
         let items = await response.json();
+        console.log('Fetched merchants:', items); // Debug: Log merchant data
+
+        // Filter merchants for Merchant role
         if (userRole === 'Merchant') {
             const userProfileResponse = await fetch('http://localhost:8000/api/v1/user-profile/', {
                 headers: { 
@@ -774,30 +785,51 @@ async function loadStockMerchants() {
                     'Content-Type': 'application/json'
                 }
             });
-            const userProfile = await userProfileResponse.json();
-            if (userProfile.merchant_id) {
-                items = items.filter(item => item.merchant_id === userProfile.merchant_id);
-            } else {
-                items = [];
+            if (!userProfileResponse.ok) {
+                throw new Error('Failed to fetch user profile');
             }
+            const userProfile = await userProfileResponse.json();
+            console.log('User profile:', userProfile); // Debug: Log user profile
+
+            if (!userProfile.merchant_id) {
+                console.warn('No merchant_id found in user profile');
+                message.textContent = 'Error: No merchant record associated with this user. Create one in Manage Merchants.';
+                merchantSelect.innerHTML = '<option value="">No merchants available</option>';
+                return;
+            }
+
+            // Filter to only the user's merchant_id
+            items = items.filter(item => item.merchant_id === userProfile.merchant_id);
+            console.log('Filtered merchants for Merchant role:', items); // Debug: Log filtered merchants
         }
+
+        // Populate dropdown
         merchantSelect.innerHTML = '<option value="">Select Merchant ID</option>';
         if (items.length === 0) {
+            console.warn('No merchants available after filtering');
+            message.textContent = userRole === 'Merchant' ? 'No merchant record found. Create one in Manage Merchants.' : 'No merchants available';
             merchantSelect.innerHTML = '<option value="">No merchants available</option>';
         } else {
             items.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.merchant_id;
-                option.textContent = item.merchant_id;
-                merchantSelect.appendChild(option);
+                if (item.merchant_id) { // Ensure merchant_id exists
+                    const option = document.createElement('option');
+                    option.value = item.merchant_id;
+                    option.textContent = `${item.merchant_id} - ${item.name || 'Unnamed Merchant'}`; // Include name for clarity
+                    merchantSelect.appendChild(option);
+                } else {
+                    console.warn('Merchant item missing merchant_id:', item);
+                }
             });
+            console.log('Merchant dropdown populated with', items.length, 'options');
         }
     } catch (error) {
+        console.error('Error loading stock merchants:', error);
         message.textContent = 'Error: ' + error.message;
-        merchantSelect.innerHTML = '<option value="">No merchants available</option>';
+        merchantSelect.innerHTML = '<option value="">Error loading merchants</option>';
     }
 }
 
+/* Loads items for stock selection dropdown */
 async function loadStockItems() {
     const itemSelect = document.getElementById('stock_item');
     const message = document.getElementById('merchant-stock-message');
@@ -824,9 +856,14 @@ async function loadStockItems() {
     }
 }
 
+/* Loads and displays merchant stock records */
 async function loadMerchantStock() {
     const tableBody = document.querySelector('#merchant-stock-table tbody');
     const message = document.getElementById('merchant-stock-message');
+    if (!tableBody || !message) {
+        console.error('Merchant stock table body or message element not found');
+        return;
+    }
     try {
         const response = await fetch('http://localhost:8000/api/v1/merchant-stock/', {
             headers: { 
@@ -834,17 +871,15 @@ async function loadMerchantStock() {
                 'Content-Type': 'application/json'
             }
         });
-        
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.detail || 'Failed to fetch merchant stock');
         }
-        
         const items = await response.json();
         tableBody.innerHTML = '';
-        
         if (items.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="6">No merchant stock found</td></tr>';
+            message.textContent = userRole === 'Merchant' ? 'No stock records found. Add one below.' : 'No merchant stock found';
         } else {
             let userMerchantId = null;
             if (userRole === 'Merchant') {
@@ -856,9 +891,19 @@ async function loadMerchantStock() {
                 });
                 const userProfile = await userProfileResponse.json();
                 userMerchantId = userProfile.merchant_id;
+                if (!userMerchantId) {
+                    message.textContent = 'Error: No merchant ID associated with this user';
+                    tableBody.innerHTML = '<tr><td colspan="6">No merchant ID found</td></tr>';
+                    return;
+                }
             }
-
             items.forEach(item => {
+                // Ensure item has required fields
+                if (!item.stock_id || !item.merchant || !item.item || item.stock_level === undefined || !item.last_updated) {
+                    console.warn('Invalid stock item data:', item);
+                    message.textContent = 'Error: Invalid stock data';
+                    return;
+                }
                 const isOwnRecord = userRole === 'Merchant' && userMerchantId && item.merchant === userMerchantId;
                 const row = `
                     <tr data-is-own-record="${isOwnRecord}">
@@ -878,11 +923,13 @@ async function loadMerchantStock() {
         }
         toggleMerchantStockActions();
     } catch (error) {
+        console.error('Error loading merchant stock:', error);
         message.textContent = 'Error: ' + error.message;
         tableBody.innerHTML = '<tr><td colspan="6">Unable to load merchant stock</td></tr>';
     }
 }
 
+/* Populates merchant stock form for editing */
 function editMerchantStockRecord(stockId, merchant, item, stockLevel) {
     if (userRole === 'Merchant') {
         fetch('http://localhost:8000/api/v1/user-profile/', {
@@ -921,6 +968,7 @@ function editMerchantStockRecord(stockId, merchant, item, stockLevel) {
     }
 }
 
+/* Resets merchant stock form and clears editing state */
 function cancelMerchantStockUpdate() {
     editingMerchantStockId = null;
     document.getElementById('merchant-stock-form').reset();
@@ -932,6 +980,7 @@ function cancelMerchantStockUpdate() {
     document.getElementById('merchant-stock-message').textContent = '';
 }
 
+/* Deletes a merchant stock record */
 async function deleteMerchantStock(stockId) {
     if (userRole !== 'Government') {
         document.getElementById('merchant-stock-message').textContent = 'Error: Only government users can delete merchant stock';
@@ -960,6 +1009,7 @@ async function deleteMerchantStock(stockId) {
     }
 }
 
+/* Loads and displays purchase records */
 async function loadPurchases() {
     const tableBody = document.querySelector('#purchase-table tbody');
     const message = document.getElementById('purchase-message');
@@ -1020,6 +1070,7 @@ async function loadPurchases() {
     }
 }
 
+/* Loads PRS IDs for purchase form dropdown */
 async function loadPurchasePRSIDs() {
     const prsSelect = document.getElementById('purchase_prs_id');
     const message = document.getElementById('purchase-message');
@@ -1033,7 +1084,7 @@ async function loadPurchasePRSIDs() {
         });
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.detail || 'Failed to load individuals');
+            throw new myselfError(errorData.detail || 'Failed to load individuals');
         }
 
         let data = await response.json();
@@ -1069,6 +1120,7 @@ async function loadPurchasePRSIDs() {
     }
 }
 
+/* Loads merchants for purchase form dropdown */
 async function loadPurchaseMerchants() {
     const merchantSelect = document.getElementById('purchase_merchant');
     const message = document.getElementById('purchase-message');
@@ -1119,8 +1171,9 @@ async function loadPurchaseMerchants() {
     }
 }
 
+/* Loads items for purchase form dropdown */
 async function loadPurchaseItems() {
-    const itemSelect = document.getElementById('purchase_item'); // Corrected ID from 'item' to 'purchase_item'
+    const itemSelect = document.getElementById('purchase_item');
     const message = document.getElementById('purchase-message');
     if (!itemSelect || !message) {
         console.error('Purchase item select or message element not found in the DOM');
@@ -1151,6 +1204,7 @@ async function loadPurchaseItems() {
     }
 }
 
+/* Populates purchase form for editing */
 function editPurchaseRecord(purchaseId, prsId, merchant, item, quantity) {
     if (userRole === 'Public') {
         document.getElementById('purchase-message').textContent = 'Error: Public users cannot update purchases';
@@ -1193,6 +1247,7 @@ function editPurchaseRecord(purchaseId, prsId, merchant, item, quantity) {
     }
 }
 
+/* Resets purchase form and clears editing state */
 function cancelPurchaseUpdate() {
     editingPurchaseId = null;
     const purchaseIdInput = document.getElementById('purchase_id');
@@ -1203,7 +1258,6 @@ function cancelPurchaseUpdate() {
     const submitButton = document.getElementById('purchase-submit');
     const cancelButton = document.getElementById('cancel-purchase-update');
 
-    // Check if all elements exist before modifying them
     if (!purchaseIdInput || !prsSelect || !merchantSelect || !itemSelect || !quantityInput || !submitButton || !cancelButton) {
         console.error('One or more purchase form elements not found in the DOM');
         return;
@@ -1216,12 +1270,13 @@ function cancelPurchaseUpdate() {
     quantityInput.value = '';
     submitButton.textContent = 'Add Purchase';
     cancelButton.style.display = 'none';
-    // Clear any error messages
     const message = document.getElementById('purchase-message');
     if (message) {
         message.textContent = userRole === 'Public' ? 'Read-only access: You can initiate purchases but cannot modify existing ones.' : '';
     }
 }
+
+/* Deletes a purchase record */
 async function deletePurchase(purchaseId) {
     if (userRole !== 'Government') {
         document.getElementById('purchase-message').textContent = 'Error: Only government users can delete purchases';
@@ -1242,10 +1297,12 @@ async function deletePurchase(purchaseId) {
             message.textContent = errorData.detail || 'Failed to delete purchase';
         }
     } catch (error) {
+       警方
         message.textContent = 'Error: ' + error.message;
     }
 }
 
+/* Loads and displays vaccination records */
 async function loadVaccinationRecords() {
     const tableBody = document.querySelector('#vaccination-table tbody');
     const message = document.getElementById('vaccination-message');
@@ -1280,6 +1337,7 @@ async function loadVaccinationRecords() {
     }
 }
 
+/* Loads PRS IDs for vaccination form dropdown */
 async function loadVaccinationPRSIDs() {
     const prsSelect = document.getElementById('vacc_prs_id');
     const message = document.getElementById('vaccination-message');
@@ -1325,6 +1383,7 @@ async function loadVaccinationPRSIDs() {
     }
 }
 
+/* Populates vaccination form for editing */
 function editVaccinationRecord(recordId, prsId, vaccineType, manufacturer, doseNumber, batchNumber, vaccinationDate, administeredBy, status) {
     if (userRole !== 'Government') {
         document.getElementById('vaccination-message').textContent = 'Error: Only government users can update vaccination records';
@@ -1344,6 +1403,7 @@ function editVaccinationRecord(recordId, prsId, vaccineType, manufacturer, doseN
     document.getElementById('cancel-vaccination-update').style.display = 'inline-block';
 }
 
+/* Resets vaccination form and clears editing state */
 function cancelVaccinationUpdate() {
     editingVaccinationId = null;
     document.getElementById('vaccination-form').reset();
@@ -1353,6 +1413,7 @@ function cancelVaccinationUpdate() {
     document.getElementById('vaccination-message').textContent = '';
 }
 
+/* Deletes a vaccination record */
 async function deleteVaccinationRecord(recordId) {
     if (userRole !== 'Government') {
         document.getElementById('vaccination-message').textContent = 'Error: Only government users can delete vaccination records';
@@ -1380,6 +1441,7 @@ async function deleteVaccinationRecord(recordId) {
     }
 }
 
+/* Loads and displays government official records */
 async function loadGovernmentOfficials() {
     const tableBody = document.querySelector('#government-official-table tbody');
     const message = document.getElementById('government-official-message');
@@ -1421,6 +1483,7 @@ async function loadGovernmentOfficials() {
     }
 }
 
+/* Loads and displays access logs */
 async function loadAccessLogs() {
     const tableBody = document.querySelector('#access-log-table tbody');
     const message = document.getElementById('access-log-message');
@@ -1466,7 +1529,7 @@ async function loadAccessLogs() {
     }
 }
 
-// Form Handlers
+/* Form submission handlers */
 document.getElementById('register-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('reg_username').value;
@@ -1513,37 +1576,10 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             return;
         }
         accessToken = tokenData.access;
-        username = usernameInput; // Store username
+        username = usernameInput;
+
         let role = 'Public';
         try {
-            const roleResponse = await fetch('http://localhost:8000/api/v1/government-officials/', {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (roleResponse.ok) {
-                const roleData = await roleResponse.json();
-                if (roleData.length > 0) {
-                    const official = roleData.find(o => o.username === usernameInput);
-                    if (official) {
-                        role = official.role.charAt(0).toUpperCase() + official.role.slice(1);
-                    }
-                }
-            } else if (roleResponse.status === 403) {
-                const profileResponse = await fetch('http://localhost:8000/api/v1/user-profile/', {
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const profileData = await profileResponse.json();
-                if (profileData.merchant_id) {
-                    role = 'Merchant';
-                }
-            }
-        } catch (error) {
-            console.error('Error fetching role:', error);
             const profileResponse = await fetch('http://localhost:8000/api/v1/user-profile/', {
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,
@@ -1553,9 +1589,29 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
             const profileData = await profileResponse.json();
             if (profileData.merchant_id) {
                 role = 'Merchant';
+            } else if (profileData.prs_id) {
+                role = 'Public';
             }
+
+            const roleResponse = await fetch('http://localhost:8000/api/v1/government-officials/', {
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (roleResponse.ok) {
+                const roleData = await roleResponse.json();
+                const official = roleData.find(o => o.username === usernameInput);
+                if (official) {
+                    role = official.role.charAt(0).toUpperCase() + official.role.slice(1);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching role:', error);
         }
+
         userRole = role;
+        console.log('Assigned userRole:', userRole);
         document.getElementById('user-role').textContent = userRole;
         if (userRole === 'Government') {
             await fetchOfficialId(usernameInput);
@@ -1569,32 +1625,12 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
     }
 });
 
-
 document.getElementById('individual-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const prs_id = document.getElementById('ind_prs_id').value;
     const national_identifier = document.getElementById('ind_national_identifier').value;
     const date_of_birth = document.getElementById('ind_date_of_birth').value;
     const message = document.getElementById('individual-message');
-
-    if (userRole === 'Public' && !editingIndividualId) {
-        try {
-            const userPrsIdResponse = await fetch('http://localhost:8000/api/v1/user-profile/', {
-                headers: { 
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const userProfile = await userPrsIdResponse.json();
-            if (userProfile.prs_id) {
-                message.textContent = 'Error: You have already created an individual record. You cannot create another.';
-                return;
-            }
-        } catch (error) {
-            message.textContent = 'Error checking user profile: ' + error.message;
-            return;
-        }
-    }
 
     const data = {
         national_identifier,
@@ -1639,25 +1675,6 @@ document.getElementById('merchant-form').addEventListener('submit', async (e) =>
     const name = document.getElementById('merch_name').value;
     const address = document.getElementById('merch_address').value;
     const message = document.getElementById('merchant-message');
-
-    if (userRole === 'Merchant' && !editingMerchantId) {
-        try {
-            const userProfileResponse = await fetch('http://localhost:8000/api/v1/user-profile/', {
-                headers: { 
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const userProfile = await userProfileResponse.json();
-            if (userProfile.merchant) {
-                message.textContent = 'Error: You have already created a merchant record. You cannot create another.';
-                return;
-            }
-        } catch (error) {
-            message.textContent = 'Error checking user profile: ' + error.message;
-            return;
-        }
-    }
 
     const data = { business_license, name, address };
 
@@ -1886,11 +1903,6 @@ document.getElementById('vaccination-form').addEventListener('submit', async (e)
         administered_by: document.getElementById('administered_by').value || null,
         status: document.getElementById('status').value
     };
-
-    if (userRole === 'Public' && !data.prs_id) {
-        document.getElementById('vaccination-message').textContent = 'Error: You must create an individual record first to get a PRS ID.';
-        return;
-    }
 
     if (data.dose_number <= 0) {
         document.getElementById('vaccination-message').textContent = 'Error: Dose number must be positive';
