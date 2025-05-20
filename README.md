@@ -40,8 +40,8 @@ The **Pandemic Resilience System (PRS)** is a web-based platform designed to man
 ## Setup Instructions
 
 ### Prerequisites
-- **Python**: 3.8 or higher, I would recommend 3.11 (Download here: `https://www.python.org/downloads/`)
-- **Git**: To clone the repository (Download here: `https://git-scm.com/downloads`)
+- **Python**: 3.8 or higher, I would recommend version 3.11, Download here: [Python](https://www.python.org/downloads/)
+- **Git**: To clone the repository, Download Git here: [Git](https://git-scm.com/downloads)
 - **Virtualenv**: Recommended for isolated environments
 - **Browser**: Chrome, Firefox, or any modern browser
 
